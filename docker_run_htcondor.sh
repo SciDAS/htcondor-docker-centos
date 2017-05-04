@@ -12,6 +12,26 @@ DOCKER_NET_NAME="htcondor"
 DOCKER_HTCONDOR_IMAGE="dscnaf/htcondor-centos"
 DOCKER_HTCONDOR_IMAGE_TAG="latest"
 
+# password file for HTCondor security
+# the password file must be owned by root, with permission 600 (rw-------)
+HOST_PASSWORD_FILE=${HTCONDOR_CONFIG_DIR}/pool_password
+CONTAINER_PASSWORD_FILE=/var/lib/condor/pool_password
+if [ ! -e ${HOST_PASSWORD_FILE} ]
+then 
+  echo "ERROR: password file ${HOST_PASSWORD_FILE} must be present"
+  exit 1
+fi
+if [ $(stat -c %a ${HOST_PASSWORD_FILE} ) != "600" ]
+then
+  echo "ERROR: password file ${HOST_PASSWORD_FILE} must have permissions 600 (rw-------)"
+  exit 1
+fi
+if [ $(stat -c %U ${HOST_PASSWORD_FILE} ) != "root" ]
+then
+  echo "ERROR: password file ${HOST_PASSWORD_FILE} must owned by root"
+  exit 1
+fi
+
 while [[ $# -gt 1 ]]
 do
 key="$1"
@@ -73,16 +93,15 @@ fi
 # Start HTCondor Master
 echo -n "docker run ${DOCKER_NAME_MASTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
            #--publish 127.0.0.1:8080:8080 \
-           #--volume ${HTCONDOR_CONFIG_DIR}/condor_config.soap:/etc/condor/condor_config.local \
 docker run -d \
            --net ${DOCKER_NET_NAME} \
            --name ${DOCKER_NAME_MASTER} \
            --hostname ${DOCKER_NAME_MASTER} \
            --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
+           --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
            --publish 8080 \
            ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
            -m #start as master
-           #--volume ${HTCONDOR_CONFIG_DIR}/condor_config.soap:/etc/condor/config.d/condor_config.soap \
 
 # check exit status from docker run, and kill script if not successful
 if [ $? -ne 0 ]
@@ -98,16 +117,15 @@ echo " done."
 # Start HTCondor Submitter
 echo -n "docker run ${DOCKER_NAME_SUBMITTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
            #--publish 127.0.0.1:8081:8080 \
-           #--volume ${HTCONDOR_CONFIG_DIR}/condor_config.soap:/etc/condor/condor_config.local \
 docker run -d \
            --net ${DOCKER_NET_NAME} \
            --name ${DOCKER_NAME_SUBMITTER} \
            --hostname ${DOCKER_NAME_SUBMITTER} \
            --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
+           --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
            --publish 8080 \
            ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
            -s ${DOCKER_NAME_MASTER}
-           #--volume ${HTCONDOR_CONFIG_DIR}/condor_config.soap:/etc/condor/config.d/condor_config.soap \
 
 # check exit status from docker run, and kill script if not successful
 if [ $? -ne 0 ]
@@ -127,6 +145,8 @@ docker run -d \
            --net ${DOCKER_NET_NAME} \
            --name ${DOCKER_NAME_EXECUTOR} \
            --hostname ${DOCKER_NAME_EXECUTOR} \
+           --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
+           --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
            ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
            -e ${DOCKER_NAME_MASTER}
 
