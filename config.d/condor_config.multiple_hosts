@@ -1,0 +1,3 @@
+# this wasn't required when all docker containers were on the same host.
+ALLOW_NEGOTIATOR=*
+
