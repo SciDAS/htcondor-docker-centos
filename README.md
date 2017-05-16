@@ -1,3 +1,7 @@
+The easiest way to start a HTCondor cluster for testing is to use the `./docker_run_htcondor.sh` script.
+
+
+----
 Container Docker per HTCondor
 =============================
 

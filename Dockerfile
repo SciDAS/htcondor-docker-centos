@@ -24,4 +24,6 @@ COPY condor-wrapper.sh /usr/local/sbin/condor-wrapper.sh
 COPY condor_config /etc/condor/condor_config
 COPY run.sh /usr/local/sbin/run.sh
 
+RUN useradd -m -s /bin/bash condor_pool
+
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/sbin/run.sh"]

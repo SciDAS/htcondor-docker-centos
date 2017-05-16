@@ -9,7 +9,7 @@ DOCKER_NAME_SUBMITTER="condor-submitter"
 DOCKER_NAME_EXECUTOR="condor-executor"
 
 DOCKER_NET_NAME="htcondor"
-DOCKER_HTCONDOR_IMAGE="dscnaf/htcondor-centos"
+DOCKER_HTCONDOR_IMAGE="scidas/htcondor-centos"
 DOCKER_HTCONDOR_IMAGE_TAG="latest"
 
 # password file for HTCondor security
