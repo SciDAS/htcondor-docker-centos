@@ -40,6 +40,9 @@ while getopts ':me:s:' OPTION; do
       [ -n "$ROLE_DAEMONS" -o -z "$OPTARG" ] && usage
       ROLE_DAEMONS="$SUBMITTER_DAEMONS"
       CONDOR_HOST="$OPTARG"
+      # gratia-probe
+      # runs by cron, only need to touch lockfile to start
+      touch /var/lock/subsys/gratia-probes-cron
     ;;
   esac
 done

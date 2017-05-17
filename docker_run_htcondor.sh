@@ -12,6 +12,8 @@ DOCKER_NET_NAME="htcondor"
 DOCKER_HTCONDOR_IMAGE="scidas/htcondor-centos"
 DOCKER_HTCONDOR_IMAGE_TAG="latest"
 
+HTCONDOR_FLOCKING_ONLY=false
+
 # password file for HTCondor security
 # the password file must be owned by root, with permission 600 (rw-------)
 HOST_PASSWORD_FILE=${HTCONDOR_CONFIG_DIR}/pool_password
@@ -32,18 +34,24 @@ then
   exit 1
 fi
 
-while [[ $# -gt 1 ]]
+while [[ $# -gt 0 ]]
 do
 key="$1"
 
 case $key in
     -t|--tag-name)
-    DOCKER_HTCONDOR_IMAGE_TAG="$2"
-    shift # past argument
-    ;;
+      DOCKER_HTCONDOR_IMAGE_TAG="$2"
+      shift # past argument
+      ;;
+    -f)
+      #echo "found flocking option"
+      HTCONDOR_FLOCKING_ONLY=true
+      ;;
     *)
-            # unknown option
-    ;;
+      # unknown option
+      echo "unknown option $1"
+      exit 1
+      ;;
 esac
 shift # past argument or value
 done
@@ -122,6 +130,9 @@ docker run -d \
            --name ${DOCKER_NAME_SUBMITTER} \
            --hostname ${DOCKER_NAME_SUBMITTER} \
            --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
+           --volume ${HTCONDOR_CONFIG_DIR}/probe/ProbeConfig:/etc/gratia/condor/ProbeConfig \
+           --volume ${HTCONDOR_CONFIG_DIR}/probe/hostkey.pem:/etc/grid-security/hostkey.pem \
+           --volume ${HTCONDOR_CONFIG_DIR}/probe/hostcert.pem:/etc/grid-security/hostcert.pem \
            --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
            --publish 8080 \
            ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
@@ -140,20 +151,25 @@ sleep ${var_sleep};
 echo " done."
 
 # Start HTCondor Executor
-echo -n "docker run ${DOCKER_NAME_EXECUTOR}:${DOCKER_HTCONDOR_IMAGE_TAG} "
-docker run -d \
-           --net ${DOCKER_NET_NAME} \
-           --name ${DOCKER_NAME_EXECUTOR} \
-           --hostname ${DOCKER_NAME_EXECUTOR} \
-           --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
-           --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
-           ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
-           -e ${DOCKER_NAME_MASTER}
-
-# check exit status from docker run, and kill script if not successful
-if [ $? -ne 0 ]
+if [ "$HTCONDOR_FLOCKING_ONLY" = true ]
 then
-  exit $?
+  echo "Flocking only, will not run ${DOCKER_NAME_EXECUTOR}"
+else
+  echo -n "docker run ${DOCKER_NAME_EXECUTOR}:${DOCKER_HTCONDOR_IMAGE_TAG} "
+  docker run -d \
+             --net ${DOCKER_NET_NAME} \
+             --name ${DOCKER_NAME_EXECUTOR} \
+             --hostname ${DOCKER_NAME_EXECUTOR} \
+             --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
+             --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
+             ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
+             -e ${DOCKER_NAME_MASTER}
+
+  # check exit status from docker run, and kill script if not successful
+  if [ $? -ne 0 ]
+  then
+    exit $?
+  fi
 fi
 
 echo "Note: You will probably need to wait 60 seconds for HTCondor to finish starting up."
