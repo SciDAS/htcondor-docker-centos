@@ -99,42 +99,52 @@ then
 fi
 
 # Start HTCondor Master
-echo -n "docker run ${DOCKER_NAME_MASTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
-           #--publish 127.0.0.1:8080:8080 \
-docker run -d \
-           --net ${DOCKER_NET_NAME} \
-           --name ${DOCKER_NAME_MASTER} \
-           --hostname ${DOCKER_NAME_MASTER} \
-           --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
-           --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
-           --publish 8080 \
-           ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
-           -m #start as master
-
-# check exit status from docker run, and kill script if not successful
-if [ $? -ne 0 ]
+if [ "$HTCONDOR_FLOCKING_ONLY" = true ]
 then
-  exit $?
-fi
+  echo "Flocking only, will not run ${DOCKER_NAME_MASTER}"
+else
+  echo -n "docker run ${DOCKER_NAME_MASTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
+             #--publish 127.0.0.1:8080:8080 \
+  docker run -d \
+             --net ${DOCKER_NET_NAME} \
+             --name ${DOCKER_NAME_MASTER} \
+             --hostname ${DOCKER_NAME_MASTER} \
+             --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
+             --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
+             --publish 8080 \
+             ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
+             -m #start as master
 
-# Sleep
-echo -n "Sleeping for ${var_sleep} to allow ${DOCKER_NAME_MASTER} container to start ..."
-sleep ${var_sleep};
-echo " done."
+  # check exit status from docker run, and kill script if not successful
+  if [ $? -ne 0 ]
+  then
+    exit $?
+  fi
+
+  # Sleep
+  echo -n "Sleeping for ${var_sleep} to allow ${DOCKER_NAME_MASTER} container to start ..."
+  sleep ${var_sleep};
+  echo " done."
+fi
 
 # Start HTCondor Submitter
 echo -n "docker run ${DOCKER_NAME_SUBMITTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
-           #--publish 127.0.0.1:8081:8080 \
+           #--publish 127.0.0.1:8081:8080 \ #SOAP
+           #--publish 8080 \ #SOAP
+           #--hostname ${DOCKER_NAME_SUBMITTER} \
+           #--hostname proof-of-concept.scidas.renci.org \
+           #--net ${DOCKER_NET_NAME} \
 docker run -d \
-           --net ${DOCKER_NET_NAME} \
+           --net=host \
            --name ${DOCKER_NAME_SUBMITTER} \
            --hostname ${DOCKER_NAME_SUBMITTER} \
            --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
            --volume ${HTCONDOR_CONFIG_DIR}/probe/ProbeConfig:/etc/gratia/condor/ProbeConfig \
            --volume ${HTCONDOR_CONFIG_DIR}/probe/hostkey.pem:/etc/grid-security/hostkey.pem \
            --volume ${HTCONDOR_CONFIG_DIR}/probe/hostcert.pem:/etc/grid-security/hostcert.pem \
+           --volume ${HTCONDOR_CONFIG_DIR}/probe/certificates/:/etc/grid-security/certificates/ \
            --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
-           --publish 8080 \
+           --publish 9618:9618 \
            ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
            -s ${DOCKER_NAME_MASTER}
 

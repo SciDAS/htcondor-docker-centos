@@ -43,6 +43,7 @@ while getopts ':me:s:' OPTION; do
       # gratia-probe
       # runs by cron, only need to touch lockfile to start
       touch /var/lock/subsys/gratia-probes-cron
+      chown -R root:root /etc/grid-security/
     ;;
   esac
 done

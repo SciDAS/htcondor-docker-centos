@@ -1,4 +1,7 @@
 # Flocking to OSG requires GSI
+#SEC_DAEMON_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+#SEC_DEFAULT_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+#SEC_NEGOTIATOR_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
 SEC_CLIENT_AUTHENTICATION_METHODS = FS, PASSWORD, GSI
 
 GSI_DAEMON_DIRECTORY = /etc/grid-security
@@ -8,7 +11,7 @@ GSI_DAEMON_DIRECTORY = /etc/grid-security
 # This is done with GSI_DAEMON_NAME. 
 # This name is specified with the following format:
 # GSI_DAEMON_NAME = /X.509/name/of/server/1,/X.509/name/of/server/2,...
-# GSI_DAEMON_NAME = ???
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=osg-flock.grid.iu.edu
 
 # This macro defines a list of collector host names
 # (not including the local $(COLLECTOR_HOST) machine)
@@ -24,4 +27,9 @@ GSI_DAEMON_DIRECTORY = /etc/grid-security
 # This defaults to FLOCK_TO
 # FLOCK_COLLECTOR_HOSTS = $(FLOCK_TO)
 # FLOCK_NEGOTIATOR_HOSTS = $(FLOCK_TO)
-# FLOCK_TO = ???
+FLOCK_TO = osg-flock.grid.iu.edu
+
+CONDOR_HOST = osg-flock.grid.iu.edu 
+#CCB_ADDRESS = osg-flock.grid.iu.edu
+NETWORK_HOSTNAME = 152.23.131.156
+
