@@ -1,4 +1,12 @@
-The easiest way to start a HTCondor cluster for testing is to use the `./docker_run_htcondor.sh` script.
+The easiest way to start a HTCondor cluster for testing is to use the `./docker_run_htcondor.sh` script.  The `-f` option can be used to run in "Flocking-only" mode, where not local Executor containers are started.
+
+To use Flocking, the `TCP_FORWARDING_HOST` setting in `condor_config.local.submitter` must be changed to match your external/public IP.
+
+You must generate the following files for the HTCondor cluster to function:
+`./pool_password` -- password authentication file used within the local HTCondor cluster (and Python API)
+`./probe/hostcert.pem` -- Host certificate used for GSI Authentication for Flocking
+`./probe/hostkey.pem` -- Host private key used for GSI Authentication for Flocking
+`./probe/certificates/` -- Trusted cerfificate authorities used for GSI Authentication for Flocking
 
 
 ----

@@ -1,4 +1,6 @@
 pool_password
 probe/hostcert.pem
 probe/hostkey.pem
+probe/certificates
+probe/certificates.tar.gz
 
