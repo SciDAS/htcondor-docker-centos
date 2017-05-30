@@ -1,7 +1,7 @@
 # Flocking to OSG requires GSI
-#SEC_DAEMON_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
-#SEC_DEFAULT_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
-#SEC_NEGOTIATOR_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+SEC_DAEMON_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+SEC_DEFAULT_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+SEC_NEGOTIATOR_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
 SEC_CLIENT_AUTHENTICATION_METHODS = FS, PASSWORD, GSI
 
 GSI_DAEMON_DIRECTORY = /etc/grid-security
@@ -31,5 +31,11 @@ FLOCK_TO = osg-flock.grid.iu.edu
 
 CONDOR_HOST = osg-flock.grid.iu.edu 
 #CCB_ADDRESS = osg-flock.grid.iu.edu
-NETWORK_HOSTNAME = 152.23.131.156
+#NETWORK_HOSTNAME = 152.23.131.156
+#NETWORK_INTERFACE = 152.23.131.156
+
+# This specifies the host or IP address that should be used as the public address of this daemon.
+# This setting is useful if HTCondor on this host may be reached through a NAT or firewall by 
+# connecting to an IP address that forwards connections to this host.
+TCP_FORWARDING_HOST = 152.54.8.183
 
