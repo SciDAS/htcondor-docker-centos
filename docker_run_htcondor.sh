@@ -99,10 +99,10 @@ then
 fi
 
 # Start HTCondor Master
-if [ "$HTCONDOR_FLOCKING_ONLY" = true ]
-then
-  echo "Flocking only, will not run ${DOCKER_NAME_MASTER}"
-else
+#if [ "$HTCONDOR_FLOCKING_ONLY" = true ]
+#then
+  #echo "Flocking only, will not run ${DOCKER_NAME_MASTER}"
+#else
   echo -n "docker run ${DOCKER_NAME_MASTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
              #--publish 127.0.0.1:8080:8080 \
   docker run -d \
@@ -125,7 +125,7 @@ else
   echo -n "Sleeping for ${var_sleep} to allow ${DOCKER_NAME_MASTER} container to start ..."
   sleep ${var_sleep};
   echo " done."
-fi
+#fi
 
 # Start HTCondor Submitter
 echo -n "docker run ${DOCKER_NAME_SUBMITTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
@@ -133,11 +133,12 @@ echo -n "docker run ${DOCKER_NAME_SUBMITTER}:${DOCKER_HTCONDOR_IMAGE_TAG} "
            #--publish 8080 \ #SOAP
            #--hostname ${DOCKER_NAME_SUBMITTER} \
            #--hostname proof-of-concept.scidas.renci.org \
-           #--net ${DOCKER_NET_NAME} \
+           #--net=host \
 docker run -d \
-           --net=host \
+           --net ${DOCKER_NET_NAME} \
            --name ${DOCKER_NAME_SUBMITTER} \
            --hostname ${DOCKER_NAME_SUBMITTER} \
+           --volume ${HTCONDOR_CONFIG_DIR}/condor_config.local.submitter:/etc/condor/condor_config.local \
            --volume ${HTCONDOR_CONFIG_DIR}/config.d/:/etc/condor/config.d \
            --volume ${HTCONDOR_CONFIG_DIR}/probe/ProbeConfig:/etc/gratia/condor/ProbeConfig \
            --volume ${HTCONDOR_CONFIG_DIR}/probe/hostkey.pem:/etc/grid-security/hostkey.pem \

@@ -29,10 +29,7 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),/DC=org/DC=opensciencegrid/O=Open Science Gri
 # FLOCK_NEGOTIATOR_HOSTS = $(FLOCK_TO)
 FLOCK_TO = osg-flock.grid.iu.edu
 
-CONDOR_HOST = osg-flock.grid.iu.edu 
-#CCB_ADDRESS = osg-flock.grid.iu.edu
-#NETWORK_HOSTNAME = 152.23.131.156
-#NETWORK_INTERFACE = 152.23.131.156
+#CONDOR_HOST = osg-flock.grid.iu.edu 
 
 # This specifies the host or IP address that should be used as the public address of this daemon.
 # This setting is useful if HTCondor on this host may be reached through a NAT or firewall by 
