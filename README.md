@@ -1,4 +1,4 @@
-The easiest way to start a HTCondor cluster for testing is to use the `./docker_run_htcondor.sh` script.  The `-f` option can be used to run in "Flocking-only" mode, where not local Executor containers are started.
+The easiest way to start a HTCondor cluster for testing is to use the `./docker_run_htcondor.sh` script.  The `-f` option can be used to run in "Flocking-only" mode, where no local Executor containers are started.
 
 To use Flocking, the `TCP_FORWARDING_HOST` setting in `condor_config.local.submitter` must be changed to match your external/public IP.
 
