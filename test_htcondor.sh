@@ -5,7 +5,7 @@ cat > sleep.sh <<EOF
 #!/bin/sh
 echo "Sleeping for 20 seconds..."
 #sleep 20
-echo `env`
+echo \`env\`
 exit 0
 EOF
 
