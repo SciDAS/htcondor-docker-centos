@@ -10,6 +10,7 @@ DOCKER_NAME_EXECUTOR="condor-executor"
 
 DOCKER_NET_NAME="htcondor"
 DOCKER_HTCONDOR_IMAGE="scidas/htcondor-centos"
+DOCKER_PEGASUS_HTCONDOR_IMAGE="scidas/pegasus-htcondor-submitter"
 DOCKER_HTCONDOR_IMAGE_TAG="latest"
 
 HTCONDOR_FLOCKING_ONLY=false
@@ -146,7 +147,7 @@ docker run -d \
            --volume ${HTCONDOR_CONFIG_DIR}/probe/certificates/:/etc/grid-security/certificates/ \
            --volume ${HOST_PASSWORD_FILE}:${CONTAINER_PASSWORD_FILE} \
            --publish 9618:9618 \
-           ${DOCKER_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
+           ${DOCKER_PEGASUS_HTCONDOR_IMAGE}:${DOCKER_HTCONDOR_IMAGE_TAG} \
            -s ${DOCKER_NAME_MASTER}
 
 # check exit status from docker run, and kill script if not successful
