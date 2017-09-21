@@ -9,12 +9,16 @@
 
 set -ex
 condor_config=/etc/condor/condor_config
-flock_from_list=$1 # comma-separated list 
+host_ip_addr=$1
+flock_from_list=$2 # comma-separated list 
 
 echo 'deb http://research.cs.wisc.edu/htcondor/ubuntu/stable/ trusty contrib' | sudo tee -a /etc/apt/sources.list
 wget -qO - http://research.cs.wisc.edu/htcondor/ubuntu/HTCondor-Release.gpg.key | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install -y condor
+
+sudo sed -i "/^.*$(hostname).*$/d" /etc/hosts
+echo "$host_ip_addr $(hostname)" | sudo tee -a /etc/hosts
 
 echo 'ALLOW_READ=*' | sudo tee -a ${condor_config}
 echo 'ALLOW_WRITE=*' | sudo tee -a ${condor_config}
