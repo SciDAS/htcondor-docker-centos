@@ -10,7 +10,7 @@ DOCKER_NAME_EXECUTOR="condor-executor"
 
 DOCKER_NET_NAME="htcondor"
 DOCKER_HTCONDOR_IMAGE="scidas/htcondor-centos"
-DOCKER_PEGASUS_HTCONDOR_IMAGE="scidas/pegasus-htcondor-submitter"
+DOCKER_PEGASUS_HTCONDOR_IMAGE="scidas/pegasus-condor-submitter"
 DOCKER_HTCONDOR_IMAGE_TAG="latest"
 
 HTCONDOR_FLOCKING_ONLY=false
