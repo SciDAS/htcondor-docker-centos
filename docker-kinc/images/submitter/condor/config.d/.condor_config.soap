@@ -1,0 +1,25 @@
+######################################################################
+##
+##  condor_config
+##
+##
+######################################################################
+
+##  Config files are read in lexicographic order.
+
+# Enable SOAP Web Service
+# http://research.cs.wisc.edu/htcondor/manual/v8.6/6_1Web_Service.html
+# This configuration lets anyone talk to your Schedd and submit jobs as any user. For deployment, you should restrict this access by narrowing the ALLOW_SOAP and by setting QUEUE_ALL_USERS_TRUSTED to FALSE. Note: changing QUEUE_ALL_USERS_TRUSTED requires that clients can authenticate themselves via SSL.
+# https://spinningmatt.wordpress.com/2009/11/02/submitting-a-workflow-to-condor-via-soap-using-java/
+ENABLE_SOAP = TRUE
+ALLOW_SOAP = *
+QUEUE_ALL_USERS_TRUSTED = TRUE
+# the default port is ephemeral, you would have to query to discover it
+SCHEDD_ARGS = -p 8080
+SOAP_LEAVE_IN_QUEUE = ((JobStatus==4) && ((ServerTime - CompletionDate) < (60 * 60 * 24)))
+HOSTALLOW_WRITE = *
+#NETWORK_INTERFACE = eth1
+USE_SHARED_PORT = FALSE
+# change in version 8.5 effectively disables SOAP unless CHOWN_JOB_SPOOL_FILES = TRUE
+CHOWN_JOB_SPOOL_FILES = TRUE
+

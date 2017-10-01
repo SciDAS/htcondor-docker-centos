@@ -1,0 +1,38 @@
+# Flocking to OSG requires GSI
+SEC_DAEMON_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+SEC_DEFAULT_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+SEC_NEGOTIATOR_AUTHENTICATION_METHODS = FS,PASSWORD,GSI
+SEC_CLIENT_AUTHENTICATION_METHODS = FS, PASSWORD, GSI
+
+GSI_DAEMON_DIRECTORY = /etc/grid-security
+
+# When a daemon acts as the client within authentication, 
+# the daemon needs a listing of those from which it will accept certificates. 
+# This is done with GSI_DAEMON_NAME. 
+# This name is specified with the following format:
+# GSI_DAEMON_NAME = /X.509/name/of/server/1,/X.509/name/of/server/2,...
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),/DC=org/DC=opensciencegrid/O=Open Science Grid/OU=Services/CN=osg-flock.grid.iu.edu
+
+# This macro defines a list of collector host names
+# (not including the local $(COLLECTOR_HOST) machine)
+# for pools in which the condor_schedd should attempt to run jobs.
+# Hosts in the list should be in order of preference.
+# The condor_schedd will only send a request to a central manager in the list
+# if the local pool and pools earlier in the list are not satisfying all the job requests.
+# $(HOSTALLOW_NEGOTIATOR_SCHEDD) (see section 3.5.4) must also be configured to allow negotiators
+# from all of the pools to contact the condor_schedd at the NEGOTIATOR authorization level.
+# Similarly, the central managers of the remote pools must be configured to allow this condor_schedd
+# to join the pool (this requires ADVERTISE_SCHEDD authorization level, which defaults to WRITE).
+#
+# This defaults to FLOCK_TO
+# FLOCK_COLLECTOR_HOSTS = $(FLOCK_TO)
+# FLOCK_NEGOTIATOR_HOSTS = $(FLOCK_TO)
+FLOCK_TO = osg-flock.grid.iu.edu
+
+#CONDOR_HOST = osg-flock.grid.iu.edu 
+
+# This specifies the host or IP address that should be used as the public address of this daemon.
+# This setting is useful if HTCondor on this host may be reached through a NAT or firewall by 
+# connecting to an IP address that forwards connections to this host.
+TCP_FORWARDING_HOST = 152.54.8.183
+
