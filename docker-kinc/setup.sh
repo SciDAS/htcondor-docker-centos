@@ -20,6 +20,7 @@ EOF
   exit 1
 }
 
+MESOS_VERSION=1.3.1
 
 while getopts h:p:n OPT;do
     case "${OPT}" in
@@ -43,10 +44,10 @@ sudo apt-get install -y docker-ce
 sudo apt-get install -y tar wget git openjdk-8-jdk build-essential python-dev \
     python-six python-virtualenv libcurl4-nss-dev libsasl2-dev libsasl2-modules \
     maven libapr1-dev libsvn-dev zlib1g-dev
-wget http://www.apache.org/dist/mesos/1.3.0/mesos-1.3.0.tar.gz
-tar -zxf mesos-1.3.0.tar.gz
-mkdir mesos-1.3.0/build
-cd mesos-1.3.0/build
+wget http://www.apache.org/dist/mesos/${MESOS_VERSION}/mesos-${MESOS_VERSION}.tar.gz
+tar -zxf mesos-${MESOS_VERSION}.tar.gz
+mkdir mesos-${MESOS_VERSION}/build
+cd mesos-${MESOS_VERSION}/build
 ../configure
 sudo make -j$NUM_CORES
 sudo make install
@@ -70,7 +71,7 @@ curl -O http://downloads.mesosphere.com/marathon/v1.4.3/marathon-1.4.3.tgz
 tar xzf marathon-1.4.3.tgz
 
 # start mesos master
-sudo nohup ~/mesos-1.3.0/build/bin/mesos-master.sh \
+sudo nohup ~/mesos-${MESOS_VERSION}/build/bin/mesos-master.sh \
           --ip=0.0.0.0 \
           --work_dir=/var/lib/mesos \
           --zk=zk://$IP:2181/mesos \
@@ -82,7 +83,7 @@ sudo nohup ~/marathon-1.4.3/bin/start \
 
 # start mesos agent
 sudo nohup env MESOS_DOCKER_SOCKET=/var/run/weave/weave.sock \
-  ~/mesos-1.3.0/build/bin/mesos-agent.sh \
+  ~/mesos-${MESOS_VERSION}/build/bin/mesos-agent.sh \
         --master=$IP:5050 \
         --work_dir=/var/lib/mesos \
         --containerizers=mesos,docker > ~/agent.log &
