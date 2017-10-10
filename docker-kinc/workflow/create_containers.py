@@ -69,7 +69,8 @@ def create_containers(containers, clusters):
           'privileged': True,
         }
       },
-      'args': co.args,
+      'args': [','.join([co.ip_addr for co in containers.values()])]
+              if 'submitter' in co.id else co.args,
       'env': {
         'WEAVE_CIDR': '%s/16'%co.ip_addr
       }
