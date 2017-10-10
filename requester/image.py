@@ -1,7 +1,8 @@
 import json
 
 from tornado.web import RequestHandler
-from utils import message, error, NO_MONGO_ID, Singleton
+from utils import message, error, decode_text
+from utils import NO_MONGO_ID, Singleton
 
 
 class Image:
@@ -82,7 +83,8 @@ class ImagesHandler(RequestHandler):
     self.write(response)
 
   def post(self):
-    status, response = self.__image_mgr.add_image(**json.loads(self.request.body))
+    body = decode_text(self.request.body)
+    status, response = self.__image_mgr.add_image(**json.loads(body))
     self.set_status(status)
     self.write(response)
 

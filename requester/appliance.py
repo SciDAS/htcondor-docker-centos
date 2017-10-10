@@ -1,11 +1,14 @@
 import json
+import uuid
+import requests
 
 from enum import Enum
 from tornado.web import RequestHandler
 
-from cluster import ClusterManager
 from image import ImageManager
-from utils import message, error, NO_MONGO_ID, Singleton
+from cluster import get_cluster_type
+from utils import message, error, decode_text
+from utils import NO_MONGO_ID, Singleton, MESOS_COORDINATOR_URL, APPLICATION_JSON
 
 
 class ApplianceStatus(Enum):
@@ -26,11 +29,11 @@ class Appliance:
     self.__resources = resources
     self.__data = data
     self.__cmd = cmd if cmd else image.cmd
-    self.__args = image.args + args if image.args else args
+    self.__args = image.args if image.args else args
     self.__env = env
-    self.__status = status
     self.__cluster = cluster
     self.__access_points = []
+    self.status = status
     if image and image.env:
       self.__env.update(image.env)
 
@@ -68,7 +71,14 @@ class Appliance:
 
   @status.setter
   def status(self, status):
-    self.__status = status
+    if status == 'TASK_RUNNING' or status == 'running':
+      self.__status = ApplianceStatus.RUNNING
+    elif status == 'TASK_STAGING' or status == 'staging':
+      self.__status = ApplianceStatus.STAGING
+    elif status == 'TASK_FAILED' or status == 'failed':
+      self.__status = ApplianceStatus.FAILED
+    else:
+      self.__status = ApplianceStatus.UNKNOWN
 
   @property
   def cluster(self):
@@ -90,7 +100,7 @@ class Appliance:
                 image=self.image.id if self.image else None,
                 resources=self.resources,
                 status=self.status.value,
-                cluster=self.cluster.id if self.cluster else None,
+                cluster=self.cluster.to_dict() if self.cluster else None,
                 accessPoints=self.access_points,
                 data=self.data,
                 args=self.args,
@@ -101,7 +111,6 @@ class ApplianceManager(metaclass=Singleton):
 
   def __init__(self, db):
     self.__app_col = db.appliances
-    self.__cluster_mgr = ClusterManager(db)
     self.__image_mgr = ImageManager(db)
 
   def get_all_appliances(self):
@@ -111,48 +120,73 @@ class ApplianceManager(metaclass=Singleton):
     app = self.__app_col.find_one(dict(id=id), projection=NO_MONGO_ID)
     if not app:
       return 404, error("Appliance '%s' is not found"%id)
+    _, app['image'] = self.__image_mgr.get_image(app['image'], True)
     if app['cluster']:
-      _, app['image'] = self.__image_mgr.get_image(app['image'], True)
-      _, app['cluster'] = self.__cluster_mgr.get_cluster(app['cluster'], True)
-      app = Appliance(**app)
+      cluster_type = get_cluster_type(app['cluster'].pop('type', None))
+      app['cluster'] = cluster_type(**app['cluster'])
+    app = Appliance(**app)
+    if app.cluster:
       status, app_info = app.cluster.get_app(id)
       if status == 200:
         app_info = json.loads(app_info)['app']
-        app_ports = app_info['container']['docker']['portMappings']
+        app_ports = app_info['container']['portMappings']
         tasks = app_info['tasks']
         if tasks:
           task = app_info['tasks'][0]
           host_ports = task['ports']
-          host_ip = app.cluster.hosts.get(task['host'], None)
+          host_ip = task.get('host', None)
           if len(host_ports) == len(app_ports):
             for i, p in enumerate(app_ports):
               app.add_access_point(
                 '%s:%d -> %d'%(host_ip, host_ports[i], p['containerPort']))
-          if task['state'] == 'TASK_RUNNING':
-            app.status = ApplianceStatus.RUNNING
-          elif task['state'] == 'TASK_STAGING':
-            app.status = ApplianceStatus.STAGING
-          elif task['state'] == 'TASK_FAILED':
-            app.status = ApplianceStatus.FAILED
-          else:
-            print(task['state'])
-            app.status = ApplianceStatus.UNKNOWN
+          app.status = task['state']
     return 200, json.dumps(app.to_dict())
 
-  def create_appliance(self, id, image, resources, data, cmd=None, args=[], env={}):
+  def create_appliance(self, id, image, resources, data, callback,
+                       cmd=None, args=[], env={}):
+
+    def submit_offer_request(app):
+      offer_req = dict(
+        requesterAddress='%s/%s/offer'%(callback, id),
+        coordinatorAddress=MESOS_COORDINATOR_URL,
+        name=id,
+        resources='cpus:%.1f;mem:%.1f'%(app.resources['cpus'], app.resources['mem']),
+        dockerImage=app.image.id,
+        globalFrameworkId=uuid.uuid4().hex
+      )
+      r = requests.post(MESOS_COORDINATOR_URL, headers=APPLICATION_JSON,
+                        data=json.dumps(offer_req))
+      return r.status_code, r.text
+
     if self.__app_col.find_one(dict(id=id)):
       return 409, error("Appliance '%s' already exists"%id)
     image_id = image
     status, image = self.__image_mgr.get_image(image_id, True)
     if status == 404:
       return status, error("Image '%s' is not found"%image_id)
-    app = Appliance(id, image, resources, data, cmd, args, env)
-    cluster = self.__cluster_mgr.allocate_cluster(app.resources, app.data)
-    status, resp = cluster.create_app(app)
+    app = Appliance(id, image, resources, data, cmd, args, env,
+                    status=ApplianceStatus.SUBMITTED)
+    self.__app_col.insert_one(app.to_dict())
+    status, resp = submit_offer_request(app)
+    if status != 200:
+      self.__app_col.delete_one(dict(id=app.id))
+      return status, resp
+    return 201, json.dumps(app.to_dict())
+
+  def accept_offer(self, id, offers):
+    app = self.__app_col.find_one(dict(id=id), projection=NO_MONGO_ID)
+    if not app:
+      return 404, error("Appliance '%s' is not found"%id)
+    _, app['image'] = self.__image_mgr.get_image(app['image'], True)
+    app = Appliance(**app)
+    offer = offers[-1]
+    print(offer)
+    cluster_type = get_cluster_type('marathon')
+    cluster = cluster_type('http://%s'%offer['Marathon'])
+    status, resp = cluster.create_app(app, agent=offer['agent'])
     if status == 201:
-      app.status = ApplianceStatus.SUBMITTED
-      app.cluster = cluster
-      self.__app_col.insert_one(app.to_dict())
+      self.__app_col.update_one(dict(id=app.id),
+                                {'$set': dict(cluster=cluster.to_dict())})
       return status, json.dumps(app.to_dict())
     elif status == 409:
       return 409, error("Appliance '%s' already exists"%id)
@@ -163,9 +197,9 @@ class ApplianceManager(metaclass=Singleton):
     if not app:
       return 404, error("Appliance '%s' is not found"%id)
     if app['cluster']:
-      status, cluster = self.__cluster_mgr.get_cluster(app['cluster'], True)
-      if status == 200:
-        status, resp = cluster.delete_app(id)
+      cluster_type = get_cluster_type(app['cluster'].pop('type', None))
+      cluster = cluster_type(**app['cluster'])
+      status, resp = cluster.delete_app(id)
     self.__app_col.delete_one(dict(id=id))
     return 200, message("Appliance '%s' has been deleted"%id)
 
@@ -181,7 +215,10 @@ class AppliancesHandler(RequestHandler):
     self.write(response)
 
   def post(self):
-    status, response = self.__app_mgr.create_appliance(**json.loads(self.request.body))
+    body = decode_text(self.request.body)
+    callback = 'http://%s%s'%(self.request.host, self.request.uri)
+    status, response = self.__app_mgr.create_appliance(callback=callback,
+                                                       **json.loads(body))
     self.set_status(status)
     self.write(response)
 
@@ -200,3 +237,19 @@ class ApplianceHandler(RequestHandler):
     status, response = self.__app_mgr.delete_appliance(id)
     self.set_status(status)
     self.write(response)
+
+
+class OfferHandler(RequestHandler):
+
+  def initialize(self, db):
+    self.__app_mgr = ApplianceManager(db)
+
+  def post(self, id):
+    offers = json.loads(decode_text(self.request.body))
+    status, resp = self.__app_mgr.accept_offer(id, [offers[k] for k in sorted(offers)
+                                                    if isinstance(offers[k], dict)])
+    self.set_status(status)
+    self.write(resp)
+
+
+

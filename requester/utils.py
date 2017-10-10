@@ -2,8 +2,11 @@ import sys
 import json
 import logging
 
-
 NO_MONGO_ID = dict(_id=False)
+
+APPLICATION_JSON = {'content-type': 'application/json'}
+
+MESOS_COORDINATOR_URL = 'http://152.54.14.6:8080/MesosCoordinator/api'
 
 
 def config_logger(log_level):
@@ -20,6 +23,12 @@ def message(msg):
 
 def error(msg):
   return json.dumps(dict(error=msg))
+
+
+def decode_text(bytes):
+  if not bytes:
+    return bytes
+  return bytes.decode('utf-8')
 
 
 class Singleton(type):
