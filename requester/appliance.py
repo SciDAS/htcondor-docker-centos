@@ -32,7 +32,7 @@ class Appliance:
     self.__args = image.args if image.args else args
     self.__env = env
     self.__cluster = cluster
-    self.__access_points = []
+    self.__endpoints = []
     self.status = status
     if image and image.env:
       self.__env.update(image.env)
@@ -71,7 +71,9 @@ class Appliance:
 
   @status.setter
   def status(self, status):
-    if status == 'TASK_RUNNING' or status == 'running':
+    if isinstance(status, ApplianceStatus):
+      self.__status = status
+    elif status == 'TASK_RUNNING' or status == 'running':
       self.__status = ApplianceStatus.RUNNING
     elif status == 'TASK_STAGING' or status == 'staging':
       self.__status = ApplianceStatus.STAGING
@@ -89,11 +91,11 @@ class Appliance:
     self.__cluster = cluster
 
   @property
-  def access_points(self):
-    return list(self.__access_points)
+  def endpoints(self):
+    return list(self.__endpoints)
 
-  def add_access_point(self, ap):
-    self.__access_points.append(ap)
+  def add_endpoint(self, ap):
+    self.__endpoints.append(ap)
 
   def to_dict(self):
     return dict(id=self.id,
@@ -101,7 +103,7 @@ class Appliance:
                 resources=self.resources,
                 status=self.status.value,
                 cluster=self.cluster.to_dict() if self.cluster else None,
-                accessPoints=self.access_points,
+                endpoints=self.endpoints,
                 data=self.data,
                 args=self.args,
                 env=self.env)
@@ -137,7 +139,7 @@ class ApplianceManager(metaclass=Singleton):
           host_ip = task.get('host', None)
           if len(host_ports) == len(app_ports):
             for i, p in enumerate(app_ports):
-              app.add_access_point(
+              app.add_endpoint(
                 '%s:%d -> %d'%(host_ip, host_ports[i], p['containerPort']))
           app.status = task['state']
     return 200, json.dumps(app.to_dict())
@@ -180,7 +182,6 @@ class ApplianceManager(metaclass=Singleton):
     _, app['image'] = self.__image_mgr.get_image(app['image'], True)
     app = Appliance(**app)
     offer = offers[-1]
-    print(offer)
     cluster_type = get_cluster_type('marathon')
     cluster = cluster_type('http://%s'%offer['Marathon'])
     status, resp = cluster.create_app(app, agent=offer['agent'])

@@ -142,7 +142,7 @@ listed below:
       "mem": 2048,
       "disk": 50000,
       "ip_addr": "10.2.0.100",
-      "args": ["1"]
+      "args": []
     },
     {
       "id": "runner1",
