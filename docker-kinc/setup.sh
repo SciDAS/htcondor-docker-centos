@@ -58,7 +58,7 @@ source ~/.bashrc
 # install weave
 sudo curl -L git.io/weave -o /usr/local/bin/weave
 sudo chmod a+x /usr/local/bin/weave
-sudo weave launch
+sudo weave launch --ipalloc-range=172.20.0.0/20
 if [ -n "$PEERS" ];then
     sudo weave connect $PEERS
 fi
