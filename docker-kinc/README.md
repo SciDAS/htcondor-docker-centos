@@ -141,7 +141,7 @@ listed below:
       "n_cpus": 1,
       "mem": 2048,
       "disk": 50000,
-      "ip_addr": "10.2.0.100",
+      "ip_addr": "170.20.85.100",
       "args": []
     },
     {
@@ -151,7 +151,7 @@ listed below:
       "n_cpus": 12,
       "mem": 4096,
       "disk": 50000,
-      "ip_addr": "10.2.0.101",
+      "ip_addr": "170.20.85.101",
       "args": ["12"]
     },
     {
@@ -161,7 +161,7 @@ listed below:
       "n_cpus": 8,
       "mem": 4096,
       "disk": 50000,
-      "ip_addr": "10.2.0.102",
+      "ip_addr": "170.20.85.102",
       "args": ["8"]
     }
   ]
