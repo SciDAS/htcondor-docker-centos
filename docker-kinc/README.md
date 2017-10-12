@@ -167,6 +167,20 @@ listed below:
   ]
 }
 ```
+Please note that the OSG-KINC workflow will require 1 GB of RAM per job.  The memory allocated to each job will be equal to the mem requested in the config.json file divided by the number of cpus requested.  Here is an example of a sufficient allocation for a chemeleon worker site:
+
+```json
+    {
+      "id": "runner1",
+      "cluster": "chameleon",
+      "image": "scidas/htcondor-worker-centos7",
+      "n_cpus": 12,
+      "mem": 120000,
+      "disk": 100000,
+      "ip_addr": "170.20.85.101",
+      "args": ["12"]
+    }
+```
 
 #### 4. Run KINC Workflow
 The KINC workflow has been baked into the docker container
