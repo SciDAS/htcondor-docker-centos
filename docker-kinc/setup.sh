@@ -33,6 +33,10 @@ done
 [ ! ${IP} ] && usage
 NUM_CORES=${NUM_CORES:=4}
 
+# install curl
+sudo apt-get update
+sudo apt-get install -y curl
+
 # install docker
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo apt-get install -y software-properties-common python-software-properties
