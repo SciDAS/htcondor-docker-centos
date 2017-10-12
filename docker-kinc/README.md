@@ -154,7 +154,7 @@ listed below:
       "cluster": "chameleon",
       "image": "scidas/htcondor-worker-centos7",
       "n_cpus": 12,
-      "mem": 4096,
+      "mem": 12288,
       "disk": 50000,
       "ip_addr": "170.20.85.101",
       "args": ["12"]
@@ -164,7 +164,7 @@ listed below:
       "cluster": "azure",
       "image": "scidas/htcondor-worker-centos7",
       "n_cpus": 8,
-      "mem": 4096,
+      "mem": 8192,
       "disk": 50000,
       "ip_addr": "170.20.85.102",
       "args": ["8"]
