@@ -58,13 +58,18 @@ usage is listed as below:
 
 ```
   Usage: ./setup.sh -h <master-public-ip> [-p <peer-list>] [-n <num-cores>]
-
+  
   Install Docker, Mesos and Marathon on Ubuntu server
 
   Options:
       -h <master-ip-addr>: public IP address of the Mesos master
       -p <peer-list>: a comma-separated list of public IP addresses of peer hosts
       -n <num-cores>: number of cores for compiling Mesos source code
+      
+  Note:  Installation paths will be off if you are not in the home directory when running setup.sh. Please do the following:
+  
+  $ cd; git clone https://github.com/SciDAS/htcondor-docker-centos
+  $ cd; htcondor-docker-centos/docker-kinc/setup.sh -h <MASTER_FLOATING_IP> -p <OTHER_NODE_FLOATING_IP> -n <num-cores>
 ```
 
 To run docker commands without `sudo`, run the following command and then
