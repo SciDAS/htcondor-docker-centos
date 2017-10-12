@@ -61,6 +61,7 @@ def create_containers(containers, clusters):
       'id': co.id,
       'cpus': co.n_cpus,
       'mem': co.mem,
+      'disk': co.disk,
       'container': {
         'type': 'DOCKER',
         'docker': {
