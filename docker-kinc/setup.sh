@@ -81,7 +81,7 @@ sudo nohup ~/mesos-${MESOS_VERSION}/build/bin/mesos-master.sh \
           --zk=zk://$IP:2181/mesos \
           --quorum=1 --advertise_ip=$IP > ~/master.log &
 # start marathon
-sudo -E nohup ~/marathon-1.4.3/bin/start \
+sudo nohup ~/marathon-1.4.3/bin/start \
     --master zk://$IP:2181/mesos \
     --zk zk://$IP:2181/marathon > ~/marathon.log &
 
