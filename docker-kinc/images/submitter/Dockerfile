@@ -15,9 +15,13 @@ RUN set -ex \
         && chmod +x /sbin/tini \
 	&& wget -O /etc/yum.repos.d/pegasus.repo http://download.pegasus.isi.edu/wms/download/rhel/7/pegasus.repo \
 	&& yum install -y pegasus \
+    && yum -y install fuse-libs openssl \
+    && wget -qO /root/icommands.rpm ftp://ftp.renci.org/pub/irods/releases/4.1.10/centos7/irods-icommands-4.1.10-centos7-x86_64.rpm \
+    && rpm -i /root/icommands.rpm \
+    && rm -f /root/icommands.rpm \
 	&& yum remove -y wget \
 	&& yum install -y supervisor condor openssh-server openssh-clients \
-	&& yum clean all 
+	&& yum clean all
 
 RUN /usr/bin/ssh-keygen -A
 RUN useradd -m -s /bin/bash condor_pool
@@ -26,7 +30,7 @@ COPY keys/workflow /home/condor_pool/.ssh/workflow
 COPY keys/workflow.pub /home/condor_pool/.ssh/workflow.pub
 COPY keys/workflow.pub /home/condor_pool/.ssh/authorized_keys
 
-RUN su - condor_pool -c ''
+RUN su - condor_pool -c 'mkdir -p /home/condor_pool/.irods'
 RUN chmod 600 /home/condor_pool/.ssh/workflow
 RUN chmod 644 /home/condor_pool/.ssh/workflow.pub
 RUN chmod 644 /home/condor_pool/.ssh/authorized_keys

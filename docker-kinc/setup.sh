@@ -47,7 +47,7 @@ sudo apt-get install -y docker-ce
 # install mesos
 sudo apt-get install -y tar wget git openjdk-8-jdk build-essential python-dev \
     python-six python-virtualenv libcurl4-nss-dev libsasl2-dev libsasl2-modules \
-    maven libapr1-dev libsvn-dev zlib1g-dev
+    maven libapr1-dev libsvn-dev zlib1g-dev autoconf
 wget http://www.apache.org/dist/mesos/${MESOS_VERSION}/mesos-${MESOS_VERSION}.tar.gz
 tar -zxf mesos-${MESOS_VERSION}.tar.gz
 mkdir mesos-${MESOS_VERSION}/build

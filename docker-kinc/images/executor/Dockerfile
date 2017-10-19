@@ -9,10 +9,14 @@ RUN set -ex \
 	&& mkdir -p /var/run/lock \
 	&& yum makecache fast \
 	&& yum --disablerepo=htcondor-stable -y install wget epel-release \
-        && wget -qO /etc/pki/rpm-gpg/RPM-GPG-KEY-HTCondor http://research.cs.wisc.edu/htcondor/yum/RPM-GPG-KEY-HTCondor \
-        && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-HTCondor \
+    && wget -qO /etc/pki/rpm-gpg/RPM-GPG-KEY-HTCondor http://research.cs.wisc.edu/htcondor/yum/RPM-GPG-KEY-HTCondor \
+    && rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-HTCondor \
 	&& wget -qO /sbin/tini https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini \
-        && chmod +x /sbin/tini \
+    && chmod +x /sbin/tini \
+    && yum -y install fuse-libs openssl \
+    && wget -qO /root/icommands.rpm ftp://ftp.renci.org/pub/irods/releases/4.1.10/centos7/irods-icommands-4.1.10-centos7-x86_64.rpm \
+    && rpm -i /root/icommands.rpm \
+    && rm -f /root/icommands.rpm \
 	&& yum remove -y wget \
 	&& yum install -y supervisor condor openssh-server openssh-clients \
 	&& yum install -y autofs fuse \
@@ -23,7 +27,7 @@ RUN set -ex \
 	&& echo "user_allow_other" >> /etc/fuse.conf \
 	&& echo "/cvmfs /etc/auto.cvmfs" >> /etc/auto.master \
 	&& chmod 4755 /bin/fusermount \
-	&& yum clean all 
+	&& yum clean all
 
 RUN /usr/bin/ssh-keygen -A
 RUN useradd -m -s /bin/bash condor_pool
@@ -32,7 +36,7 @@ COPY keys/workflow /home/condor_pool/.ssh/workflow
 COPY keys/workflow.pub /home/condor_pool/.ssh/workflow.pub
 COPY keys/workflow.pub /home/condor_pool/.ssh/authorized_keys
 
-RUN su - condor_pool -c ''
+RUN su - condor_pool -c 'mkdir -p /home/condor_pool/.irods'
 RUN chmod 600 /home/condor_pool/.ssh/workflow
 RUN chmod 644 /home/condor_pool/.ssh/workflow.pub
 RUN chmod 644 /home/condor_pool/.ssh/authorized_keys
