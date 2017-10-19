@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 from collections import namedtuple
 
 Cluster = namedtuple('Cluster', 'id marathon_uri')
-Container = namedtuple('Container', 'id cluster image n_cpus mem disk ip_addr args')
+Container = namedtuple('Container', 'id cluster ports image n_cpus mem disk args')
 
 FIELD_MISSING_ERR = '[Error] Field "%s" is missing'
 
@@ -32,7 +32,9 @@ def parse_config(cfg_file):
       sys.exit(1)
     clusters = {cl['id']: Cluster(**cl) for cl in cfg['clusters']}
     containers = {co['id']: Container(**co) for co in cfg['containers']}
-    return clusters, containers
+    network = cfg['network']
+    network['containers'] = {n['id']: n['ip_addr'] for n in network['containers']}
+    return clusters, containers, network
   except json.decoder.JSONDecodeError as e:
     print('[Error] Cannot parse config file: %s'%cfg_file)
     sys.exit(2)
@@ -50,7 +52,7 @@ def cleanup_containers(containers, clusters):
   time.sleep(10)
 
 
-def create_containers(containers, clusters):
+def create_containers(containers, clusters, network):
   for co in containers.values():
     if co.cluster not in clusters:
       continue
@@ -68,12 +70,17 @@ def create_containers(containers, clusters):
           'image': co.image,
           'network': 'BRIDGE',
           'privileged': True,
-        }
+        },
+        'portMappings': [dict(containerPort=p['container_port'],
+                              hostPort=p['host_port'],
+                              protocol=p['protocol'])
+                         for p in co.ports]
       },
-      'args': [','.join([co.ip_addr for co in containers.values()])]
-              if 'submitter' in co.id else co.args,
+      'args': co.args,
       'env': {
-        'WEAVE_CIDR': '%s/16'%co.ip_addr
+        'WEAVE_CIDR': '%s/16'%network['containers'][co.id],
+        'APP_NUM_CORES': str(co.n_cpus),
+        'APP_NETWORK': network['cidr']
       }
     }
     resp = requests.post(cl.marathon_uri, data=json.dumps(container_req))
@@ -83,7 +90,7 @@ def create_containers(containers, clusters):
 
 if __name__ == '__main__':
   args = parse_args()
-  clusters, containers = parse_config(args.config)
+  clusters, containers, network = parse_config(args.config)
   cleanup_containers(containers, clusters)
-  create_containers(containers, clusters)
+  create_containers(containers, clusters, network)
 

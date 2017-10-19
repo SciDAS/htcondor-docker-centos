@@ -129,14 +129,8 @@ listed below:
 ```json
 {
   "clusters": [
-    {
-        "id": "chameleon",
-        "marathon_uri": "http://130.202.88.187:8080/v2/apps"
-    },
-    {
-        "id": "azure",
-        "marathon_uri": "http://40.71.41.241:8080/v2/apps"
-    }
+    {"id": "chameleon", "marathon_uri": "http://130.202.88.202:9090/v2/apps"},
+    {"id": "azure", "marathon_uri": "http://13.90.204.206:9090/v2/apps"}
   ],
   "containers": [
     {
@@ -146,33 +140,67 @@ listed below:
       "n_cpus": 1,
       "mem": 2048,
       "disk": 50000,
-      "ip_addr": "170.20.85.100",
-      "args": []
+      "ports": [
+        {"container_port": 22, "host_port": 0, "protocol": "tcp"}
+      ],
+      "args": [
+               "-f", "172.16.0.2,172.16.0.3",
+               "-k", "<ssh-pubkey>",
+               "-u", "<irods-user>",
+               "-p", "<irods-password>",
+               "-h", "<irods-host>",
+               "-z", "<irods-zone>",
+               "-P", "<irods-port>"
+      ]
     },
     {
       "id": "runner1",
       "cluster": "chameleon",
       "image": "scidas/htcondor-worker-centos7",
       "n_cpus": 12,
-      "mem": 12288,
-      "disk": 50000,
-      "ip_addr": "170.20.85.101",
-      "args": ["12"]
+      "mem": 4096,
+      "disk": 10000,
+      "ports": [],
+      "args": [
+                "-u", "<ssh-pubkey>",
+                "-p", "<irods-password>",
+                "-h", "<irods-host>",
+                "-z", "<irods-zone>",
+                "-P", "<irods-port>"
+      ]
     },
     {
       "id": "runner2",
       "cluster": "azure",
       "image": "scidas/htcondor-worker-centos7",
-      "n_cpus": 8,
-      "mem": 8192,
-      "disk": 50000,
-      "ip_addr": "170.20.85.102",
-      "args": ["8"]
+      "n_cpus": 4,
+      "mem": 4096,
+      "disk": 10000,
+      "ports": [],
+      "args": [
+                "-u", "<ssh-pubkey>",
+                "-p", "<irods-password>",
+                "-h", "<irods-host>",
+                "-z", "<irods-zone>",
+                "-P", "<irods-port>"
+      ]
     }
-  ]
+  ],
+  "network": {
+    "cidr": "172.16.0.0/24",
+    "containers": [
+      {"id": "submitter", "ip_addr": "172.16.0.1"},
+      {"id": "runner1", "ip_addr": "172.16.0.2"},
+      {"id": "runner2", "ip_addr": "172.16.0.3"}
+    ]
+  }
 }
 ```
-Please note that the OSG-KINC workflow will require 1 GB of RAM per job.  The memory allocated to each job will be equal to the mem requested in the config.json file divided by the number of cpus requested.  Here is an example of a sufficient allocation for a chemeleon worker site:
+
+Please note that the OSG-KINC workflow will require 1 GB of RAM per job.
+The memory allocated to each job will be equal to the mem requested in
+the config.json file divided by the number of cpus requested. Here is an
+example of a sufficient allocation for an executor running on Chameleon:
 
 ```json
     {
@@ -182,10 +210,14 @@ Please note that the OSG-KINC workflow will require 1 GB of RAM per job.  The me
       "n_cpus": 12,
       "mem": 120000,
       "disk": 100000,
-      "ip_addr": "170.20.85.101",
-      "args": ["12"]
+      "ports": [...],
+      "args": [...]
     }
 ```
+
+The `"network"` field defines the virtual network used by the containers
+to communicate with each other. It specifies the CIDR of the network and
+the mappings between the containers and their virtual IP addresses.
 
 #### 4. Run KINC Workflow
 The KINC workflow has been baked into the docker container

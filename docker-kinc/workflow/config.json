@@ -1,7 +1,7 @@
 {
   "clusters": [
-    {"id": "chameleon", "marathon_uri": "http://130.202.88.187:8080/v2/apps"},
-    {"id": "azure", "marathon_uri": "http://40.71.41.241:8080/v2/apps"}
+    {"id": "chameleon", "marathon_uri": "http://130.202.88.202:9090/v2/apps"},
+    {"id": "azure", "marathon_uri": "http://13.90.204.206:9090/v2/apps"}
   ],
   "containers": [
     {
@@ -11,8 +11,18 @@
       "n_cpus": 1,
       "mem": 2048,
       "disk": 50000,
-      "ip_addr": "10.2.0.100",
-      "args": []
+      "ports": [
+        {"container_port": 22, "host_port": 0, "protocol": "tcp"}
+      ],
+      "args": [
+               "-f", "172.16.0.2,172.16.0.3",
+               "-k", "<ssh-pubkey>",
+               "-u", "<irods-user>",
+               "-p", "<irods-password>",
+               "-h", "<irods-host>",
+               "-z", "<irods-zone>",
+               "-P", "<irods-port>"
+      ]
     },
     {
       "id": "runner1",
@@ -20,19 +30,39 @@
       "image": "scidas/htcondor-worker-centos7",
       "n_cpus": 12,
       "mem": 4096,
-      "disk": 50000,
-      "ip_addr": "10.2.0.101",
-      "args": ["12"]
+      "disk": 10000,
+      "ports": [],
+      "args": [
+                "-u", "<ssh-pubkey>",
+                "-p", "<irods-password>",
+                "-h", "<irods-host>",
+                "-z", "<irods-zone>",
+                "-P", "<irods-port>"
+      ]
     },
     {
       "id": "runner2",
       "cluster": "azure",
       "image": "scidas/htcondor-worker-centos7",
-      "n_cpus": 8,
+      "n_cpus": 4,
       "mem": 4096,
-      "disk": 50000,
-      "ip_addr": "10.2.0.102",
-      "args": ["8"]
+      "disk": 10000,
+      "ports": [],
+      "args": [
+                "-u", "<ssh-pubkey>",
+                "-p", "<irods-password>",
+                "-h", "<irods-host>",
+                "-z", "<irods-zone>",
+                "-P", "<irods-port>"
+      ]
     }
-  ]
+  ],
+  "network": {
+    "cidr": "172.16.0.0/24",
+    "containers": [
+      {"id": "submitter", "ip_addr": "172.16.0.1"},
+      {"id": "runner1", "ip_addr": "172.16.0.2"},
+      {"id": "runner2", "ip_addr": "172.16.0.3"}
+    ]
+  }
 }
