@@ -162,7 +162,7 @@ listed below:
       "disk": 10000,
       "ports": [],
       "args": [
-                "-u", "<ssh-pubkey>",
+                "-u", "<irods-user>",
                 "-p", "<irods-password>",
                 "-h", "<irods-host>",
                 "-z", "<irods-zone>",
@@ -178,7 +178,7 @@ listed below:
       "disk": 10000,
       "ports": [],
       "args": [
-                "-u", "<ssh-pubkey>",
+                "-u", "<irods-user>",
                 "-p", "<irods-password>",
                 "-h", "<irods-host>",
                 "-z", "<irods-zone>",
