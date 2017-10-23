@@ -20,7 +20,7 @@ RUN set -ex \
     && rpm -i /root/icommands.rpm \
     && rm -f /root/icommands.rpm \
 	&& yum remove -y wget \
-	&& yum install -y supervisor condor openssh-server openssh-clients \
+	&& yum install -y git gettext supervisor condor openssh-server openssh-clients \
 	&& yum clean all
 
 RUN /usr/bin/ssh-keygen -A

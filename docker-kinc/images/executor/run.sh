@@ -57,6 +57,8 @@ cat > /home/condor_pool/.irods/irods_environment.json <<EOF
     "irods_match_hash_policy": "compatible"
 }
 EOF
+chown condor_pool /home/condor_pool/.irods/irods_environment.json
+chmod 0600 /home/condor_pool/.irods/irods_environment.json
 su - condor_pool -c "iinit ${IRODS_PW}"
 
 exec /usr/bin/supervisord -c /etc/supervisord.conf
