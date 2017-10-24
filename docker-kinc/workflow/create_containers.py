@@ -79,8 +79,8 @@ def create_containers(containers, clusters, network):
       'args': co.args,
       'env': {
         'WEAVE_CIDR': '%s/16'%network['containers'][co.id],
-        'APP_NUM_CORES': str(co.n_cpus),
-        'APP_NETWORK': network['cidr']
+        'SCIDAS_RESC_CPUS': str(co.n_cpus),
+        'SCIDAS_APP_NETWORK': network['cidr']
       }
     }
     resp = requests.post(cl.marathon_uri, data=json.dumps(container_req))
