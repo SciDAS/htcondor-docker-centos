@@ -35,8 +35,8 @@ IRODS_ZONE=${IRODS_ZONE:='scidasZone'}
 
 # configure HTCondor
 cat >> /etc/condor/condor_config.local <<EOF
-NUM_SLOTS=${APP_NUM_CORES}
-FLOCK_FROM=${APP_NETWORK}
+NUM_SLOTS=${SCIDAS_RESC_CPUS}
+FLOCK_FROM=${SCIDAS_APP_NETWORK}
 EOF
 
 # create iCommands environment file
