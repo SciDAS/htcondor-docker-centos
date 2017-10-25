@@ -27,7 +27,7 @@ while getopts u:p:h:P:z OPT;do
     esac
 done
 
-[ ! ${SSH_KEY} -o  ! ${IRODS_USER} -o ! ${IRODS_PW} ] && usage
+[ ! ${IRODS_USER} -o ! ${IRODS_PW} ] && usage
 
 IRODS_HOST=${IRODS_HOST:='irods-renci.scidas.org'}
 IRODS_PORT=${IRODS_PORT:=1247}
