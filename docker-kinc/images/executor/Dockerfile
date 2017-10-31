@@ -50,6 +50,7 @@ COPY supervisord/sshd.ini /etc/supervisord.d/sshd.ini
 COPY cvmfs/default.local /etc/cvmfs/default.local
 
 COPY condor/condor-wrapper.sh /usr/local/sbin/condor-wrapper.sh
+COPY condor/condor_config /etc/condor/condor_config
 COPY condor/condor_config.local /etc/condor/condor_config.local
 
 COPY run.sh /usr/local/sbin/run.sh

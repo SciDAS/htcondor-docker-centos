@@ -2,14 +2,15 @@
 
 usage() {
   cat <<-EOF
-  Usage: $0  -u <irods-user> -p <irods-password>
+  Usage: $0  -u <irods-user> -p <irods-password> [-m <master-host>]
             [-h <icat-host>] [-P <irods-port>] [-z <irods-zone>]
 
-  Initial setup of KINC submitter
+  Initial setup of HTCondor pool
 
   Options:
       -u <irods-user>: iRODS user
       -p <irods-password>: iRODS password
+      -m <master-host>: HTCondor master host; runs as a worker if set
       -h <icat-host>: iCAT host
       -P <irods-port> iCAT port number
       -z <irods-zone> iRODS zone
@@ -17,10 +18,11 @@ EOF
   exit 1
 }
 
-while getopts u:p:h:P:z OPT;do
+while getopts u:p:m:h:P:z OPT;do
     case "${OPT}" in
         u) IRODS_USER=${OPTARG};;
         p) IRODS_PW=${OPTARG};;
+        m) MASTER_HOST=${OPTARG};;
         h) IRODS_HOST=${OPTARG};;
         P) IRODS_PORT=${OPTARG};;
         z) IRODS_ZONE=${OPTARG};;
@@ -34,10 +36,20 @@ IRODS_PORT=${IRODS_PORT:=1247}
 IRODS_ZONE=${IRODS_ZONE:='scidasZone'}
 
 # configure HTCondor
+if [ -z ${MASTER_HOST} ];then
 cat >> /etc/condor/condor_config.local <<EOF
-NUM_SLOTS=${SCIDAS_RESC_CPUS}
-FLOCK_FROM=${SCIDAS_APP_NETWORK}
+CONDOR_HOST = \$(FULL_HOSTNAME)
+DAEMON_LIST = MASTER, NEGOTIATOR, COLLECTOR, SCHEDD, STARTD
+NUM_SLOTS = ${SCIDAS_RESC_CPUS}
+FLOCK_FROM = ${SCIDAS_APP_NETWORK}
 EOF
+else
+cat >> /etc/condor/condor_config.local <<EOF
+CONDOR_HOST = ${MASTER_HOST}
+DAEMON_LIST = MASTER, STARTD
+NUM_SLOTS = ${SCIDAS_RESC_CPUS}
+EOF
+fi
 
 # create iCommands environment file
 cat > /home/condor_pool/.irods/irods_environment.json <<EOF
