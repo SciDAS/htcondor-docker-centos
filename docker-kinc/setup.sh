@@ -21,6 +21,7 @@ EOF
 }
 
 MESOS_VERSION=1.3.1
+MARATHON_VERSION=1.5.1
 
 while getopts h:p:n OPT;do
     case "${OPT}" in
@@ -71,8 +72,8 @@ fi
 sudo apt-get install -y zookeeperd
 
 # install marathon
-curl -O http://downloads.mesosphere.com/marathon/v1.4.3/marathon-1.4.3.tgz
-tar xzf marathon-1.4.3.tgz
+curl -O http://downloads.mesosphere.com/marathon/v${MARATHON_VERSION}/marathon-${MARATHON_VERSION}.tgz
+tar xzf marathon-${MARATHON_VERSION}.tgz
 
 # start mesos master
 sudo nohup ~/mesos-${MESOS_VERSION}/build/bin/mesos-master.sh \
