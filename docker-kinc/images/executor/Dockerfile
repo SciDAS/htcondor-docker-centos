@@ -18,16 +18,22 @@ RUN set -ex \
     && rpm -i /root/icommands.rpm \
     && rm -f /root/icommands.rpm \
 	&& yum remove -y wget \
-	&& yum install -y supervisor condor openssh-server openssh-clients \
-	&& yum install -y autofs fuse \
+	&& yum install -y supervisor condor openssh-server openssh-clients autofs fuse \
 	&& yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
 	&& yum install -y yum-plugin-priorities \
 	&& yum install -y https://repo.grid.iu.edu/osg/3.4/osg-3.4-el7-release-latest.rpm \
 	&& yum install -y osg-oasis \
 	&& echo "user_allow_other" >> /etc/fuse.conf \
 	&& echo "/cvmfs /etc/auto.cvmfs" >> /etc/auto.master \
-	&& chmod 4755 /bin/fusermount \
-	&& yum clean all
+	&& chmod 4755 /bin/fusermount
+
+
+# install python3.6
+RUN yum -y update \
+    && yum -y install https://centos7.iuscommunity.org/ius-release.rpm \
+    && yum -y install python36u \
+    && ln -s /usr/bin/python3.6 /usr/bin/python3 \
+    && yum clean all
 
 RUN /usr/bin/ssh-keygen -A
 RUN useradd -m -s /bin/bash condor_pool
@@ -53,9 +59,9 @@ COPY condor/condor-wrapper.sh /usr/local/sbin/condor-wrapper.sh
 COPY condor/condor_config /etc/condor/condor_config
 COPY condor/condor_config.local /etc/condor/condor_config.local
 
-COPY run.sh /usr/local/sbin/run.sh
+COPY run.py /usr/local/sbin/run.py
 
-RUN chmod +x /usr/local/sbin/run.sh
+RUN chmod +x /usr/local/sbin/run.py
 RUN chmod +x /usr/local/sbin/condor-wrapper.sh
 
-ENTRYPOINT ["/sbin/tini", "--", "/usr/local/sbin/run.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/sbin/run.py"]
